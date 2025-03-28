@@ -1,0 +1,7 @@
+{
+    "client_id": "1348220878797799484",
+    "client_secret": "wVEwgmflO2_W17i29_qRvHuEdpY3WYfD",
+    "redirect_url": "http://127.0.0.1:3001/main.html",
+    "authUrl": "https://discord.com/oauth2/authorize?client_id=1348220878797799484&response_type=code&redirect_uri=http%3A%2F%2F127.0.0.1%3A3001%2Fmain.html&scope=identify+guilds+guilds.join"
+  }
+  
