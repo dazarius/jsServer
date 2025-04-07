@@ -20,11 +20,8 @@ async function DiscordData(access_token) {
         const user = userResponse.data;
         const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
         const uuid = generateShortUUID(user.id);
-        data['user'] = {
-            username: user.username,
-            avatarUrl: avatarUrl,
-            id: user.id,
-        };
+        user.avatar = avatarUrl;
+        data['user'] = user
 
         const guildsResponse = await axios.get('https://discord.com/api/v10/users/@me/guilds', {
             headers: {
@@ -33,12 +30,16 @@ async function DiscordData(access_token) {
         });
 
         const guilds = guildsResponse.data;
+        const owner = guilds.filter(guild => guild.owner === true);
+        data['guilds'] = owner
+        console.log('guildsData', data['guilds']);
 
-        data['guilds'] = guilds.map(guild => guild.name); 
+        // data['guilds'] = guilds.map(guild => guild.name);
         const data2 = {
             user:data,
             uuid: uuid
         }
+        console.log('data2', data2);
         let existingData = {};
 
         const filePath = path.join(__dirname, 'files', 'users.json');

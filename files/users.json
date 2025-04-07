@@ -1,54 +1,102 @@
 {
-  "8f9d3348": {
+  "b687ff9d": {
     "user": {
+      "id": "912280533155856394",
       "username": "_dazarius",
-      "avatarUrl": "https://cdn.discordapp.com/avatars/912280533155856394/f736ecaa07bd9d4d29046e19a99a46e6.png",
-      "id": "912280533155856394"
+      "avatar": "f736ecaa07bd9d4d29046e19a99a46e6",
+      "discriminator": "0",
+      "public_flags": 256,
+      "flags": 256,
+      "banner": null,
+      "accent_color": 1457370,
+      "global_name": "dazay",
+      "avatar_decoration_data": null,
+      "collectibles": null,
+      "banner_color": "#163cda",
+      "clan": null,
+      "primary_guild": null,
+      "mfa_enabled": true,
+      "locale": "uk",
+      "premium_type": 0
     },
     "guilds": [
-      "Nillion",
-      "BlockVision's server",
-      "HaHa",
-      "Linera",
-      "Bo Family🧊",
-      "Сервер sanchouz",
-      "WarpGate Official",
-      "Narwhal Finance ♓",
-      "Nabla Finance",
-      "io.net",
-      "Camelot",
-      "Poply | Monad NFT MarketPlace",
-      "Hyperbolic",
-      "Humanity Protocol",
-      "Sahara AI Official",
-      "Somnia",
-      "0G",
-      "MegaETH",
-      "Fraction AI",
-      "RU Ambassadors",
-      "Soneium",
-      "Hedgemony",
-      "Monad Pad",
-      "Abstract",
-      "Nad Name Service",
-      "Sentient",
-      "Nincompoop",
-      "Monadverse",
-      "Antix",
-      "Mawari",
-      "ChainOpera AI",
-      "THE 10k SQUAD",
-      "Sophon Hub",
-      "eskalibur 2.0",
-      "Ink",
-      "Magic Newton",
-      "Dirol Protocol",
-      "Dusted",
-      "RealNads",
-      "Mu Digital",
-      "MonAI ⨀",
-      "Gridix",
-      "Seismic"
+      {
+        "id": "1020752463424401508",
+        "name": "Сервер sanchouz",
+        "icon": null,
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
+      },
+      {
+        "id": "1118441509512028201",
+        "name": "Camelot",
+        "icon": "b829f55c1daffb14eae134b08877577f",
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
+      },
+      {
+        "id": "1283309822514696272",
+        "name": "eskalibur 2.0",
+        "icon": null,
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
+      }
+    ]
+  },
+  "bf89a053": {
+    "user": {
+      "id": "912280533155856394",
+      "username": "_dazarius",
+      "avatar": "https://cdn.discordapp.com/avatars/912280533155856394/f736ecaa07bd9d4d29046e19a99a46e6.png",
+      "discriminator": "0",
+      "public_flags": 256,
+      "flags": 256,
+      "banner": null,
+      "accent_color": 1457370,
+      "global_name": "dazay",
+      "avatar_decoration_data": null,
+      "collectibles": null,
+      "banner_color": "#163cda",
+      "clan": null,
+      "primary_guild": null,
+      "mfa_enabled": true,
+      "locale": "uk",
+      "premium_type": 0
+    },
+    "guilds": [
+      {
+        "id": "1020752463424401508",
+        "name": "Сервер sanchouz",
+        "icon": null,
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
+      },
+      {
+        "id": "1118441509512028201",
+        "name": "Camelot",
+        "icon": "b829f55c1daffb14eae134b08877577f",
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
+      },
+      {
+        "id": "1283309822514696272",
+        "name": "eskalibur 2.0",
+        "icon": null,
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
+      }
     ]
   }
 }

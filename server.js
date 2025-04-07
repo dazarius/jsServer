@@ -9,7 +9,7 @@ const { DiscordData } = require('./discordData');
 const fs = require('fs');
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 app.use(express.json());
 app.use(cors({
@@ -17,6 +17,56 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'], 
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+app.get('/api1/loadData', (req, res) => {
+  console.log('loadData');
+  
+  // Извлекаем параметр uuid из строки запроса
+
+  const filePath = path.join(__dirname, 'files', 'users.json');
+  const files = ['commands.json', 'serverList.json'];
+  const data = {};
+
+  // Чтение основного файла users.json
+  fs.readFile(filePath, 'utf-8', (err, fileData) => {
+    if (err) {
+      return res.status(500).send('Error reading users file');
+    }
+
+    const usersData = JSON.parse(fileData);
+
+    // Проверяем, есть ли uuid в данных пользователей
+      
+
+      // Чтение дополнительных файлов
+      let filePromises = files.map(file => {
+        return new Promise((resolve, reject) => {
+          const filePath = path.join(__dirname, 'files', file);
+          fs.readFile(filePath, 'utf-8', (err, fileData) => {
+            if (err) {
+              reject(`Error reading ${file}`);
+            } else {
+              resolve(JSON.parse(fileData));
+            }
+          });
+        });
+      });
+
+      Promise.all(filePromises)
+        .then(fileContents => {
+          data.commands = fileContents[0];  
+          data.serverList = fileContents[1];  
+          
+          res.json(data);  // Отправляем ответ
+        })
+        .catch(error => {
+          res.status(500).send(error);  // Обрабатываем ошибку чтения файлов
+        });
+
+  });
+});
+
+
 app.get('/api1/authDC', (req, res) => {
     const filePath = path.join(__dirname, 'files', 'discorAuth.json');  
     fs.readFile(filePath, 'utf-8', (err, data) => {
@@ -94,43 +144,29 @@ app.post('/api1/serverList', (req, res) => {
   const filePath = path.join(__dirname, 'files', 'serverList.json');
 
   if (action === "sync") {
-
     fs.readFile(filePath, 'utf-8', (err, data) => {
-      let dataFile = {};
+      if (err) {
+        console.error('Error reading file:', err);
+        return res.status(500).send('Error reading file');  // Отправляем ответ и прерываем выполнение
+      }
       
-      if (!err && data) {
-        try {
-          dataFile = JSON.parse(data);
-        } catch (e) {
-          dataFile = {};  
-        }
+      let dataFile = JSON.parse(data);
+      if(!dataFile.servers) {
+        dataFile.servers = [];  
       }
-
-      if (!dataFile.servers) {
-        dataFile.servers = [];
-      }
-
-      dataFile.servers.push(server);
+      dataFile.servers = server 
 
       fs.writeFile(filePath, JSON.stringify(dataFile, null, 2), (writeErr) => {
         if (writeErr) {
           console.error('Error writing to file:', writeErr);
-          return res.status(500).send('Error writing to file');
+          return res.status(500).send('Error writing to file');  // Отправляем ответ и прерываем выполнение
         }
+
         console.log('Server added to the list');
-        res.send('Server added to the list');
+        res.send('Server added to the list');  // Отправляем успешный ответ
       });
     });
-  } 
-  if (action === "addToList") {}
-  if(action === "remove") {}
-  if(action === "getList") {
-    fs.readFile(filePath, 'utf-8', (err, data) => {
-      console.log('data:', data);
-      
-    });
-  }
-  else {
+  } else {
     res.status(400).send('Invalid action');
   }
 });
@@ -218,9 +254,10 @@ app.get('/api1/getCommands', (req, res) => {
 
 
 app.post('/api1/userData', (req, res) => {
-  const { uuid,discord, wallet, type }  = req.body;
+  const {action, uuid,discord, wallet, type }  = req.body;
   const filePath = path.join(__dirname, 'files', 'users.json');
-  if(type === "discord"){
+  if(action === "setData"){
+    
     fs.readFile(filePath, 'utf-8', (err, data) => {
       if (err) {
           console.error('Error reading file:', err);
@@ -270,5 +307,53 @@ app.post('/api1/userData', (req, res) => {
       });
     });
   }
+  
+})
+
+
+app.get('/api1/chainAutocomplete', (req, res) => {
+  const { get } = req.query;
+  file_path = path.join(__dirname, 'files/contracts', `${get}.json`);
+  fs.readFile(file_path, 'utf-8', (err, data) => {
+      if (err) {
+          console.error('Error reading file:', err);
+          return res.status(500).send('Error reading file');
+      }
+
+      const commands = JSON.parse(data);
+      res.json(commands);
+  });
+
+})  
+
+
+
+app.get('/api1/discordBotData', (req, res) => {
+  const { re } = req.query;
+  console.log('re:', re);
+  let data = {};
+  if(re === "contract") {
+    file_path = path.join(__dirname, 'files', 'contracts');
+    const files = fs.readdirSync(file_path).filter(file => file.endsWith('.json'));
+    console.log('files:', files);
+    files.forEach((file, index) => {
+      const fullPath = path.join(file_path, file);
+      const content = fs.readFileSync(fullPath, 'utf-8');
+      try {
+        data[file] = JSON.parse(content);
+        
+      } catch (e) {
+        console.error(`Ошибка парсинга ${file}:`, e);
+      }
+    })
+    console.log('data:', data);
+    
+    
+  }
+  if(re === "config") {
+    file_path = path.join(__dirname, 'files', 'users.json');
+  }
+  res.json(data);
+
   
 })

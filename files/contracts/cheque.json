@@ -1,0 +1,40 @@
+{
+    "arb":{
+        "contract": "sdvasf",
+        "abi": "sdv"
+        
+
+    },
+    "bsc":{
+        "version":{
+            "v1":{
+
+            },
+            "v2":{
+
+            }
+        }
+    },
+    "optimism":{
+        "version":{
+            "v1":{
+
+            },
+            "v2":{
+
+            }
+        }
+    },
+    "polygon":{
+        "version":{
+            "v1":{
+
+            },
+            "v2":{
+
+            }
+        }   
+    }
+    
+
+}

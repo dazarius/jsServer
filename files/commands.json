@@ -1,7 +1,22 @@
 {
   "slashCommand": {
-    "sync_servers": {
-      "description": "-"
+    "sync": {
+      "description": "-",
+      "access": [
+        912280533155856400
+      ]
+    },
+    "update": {
+      "description": "Get the list of chains",
+      "access": [
+        912280533155856400
+      ]
+    },
+    "claim_evm": {
+      "description": "Claim your cheque",
+      "access": [
+        912280533155856400
+      ]
     }
   }
 }
