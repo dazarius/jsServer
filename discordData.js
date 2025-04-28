@@ -3,6 +3,8 @@ const crypto = require('crypto');
 const path = require('path');
 const querystring = require('querystring');  
 const fs = require('fs');
+const { createWallet } = require('./web3'); // Импортируем функцию createWallet
+
 
 
 
@@ -19,7 +21,6 @@ async function DiscordData(access_token) {
 
         const user = userResponse.data;
         const avatarUrl = `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`;
-        const uuid = generateShortUUID(user.id);
         user.avatar = avatarUrl;
         data['user'] = user
 
@@ -31,23 +32,24 @@ async function DiscordData(access_token) {
 
         const guilds = guildsResponse.data;
         const owner = guilds.filter(guild => guild.owner === true);
-        data['guilds'] = owner
         console.log('guildsData', data['guilds']);
+        const wallet = createWallet();
+        data['user']['wallet'] = wallet;
 
         // data['guilds'] = guilds.map(guild => guild.name);
         const data2 = {
             user:data,
-            uuid: uuid
+            wallet: wallet,
+            ownGuilds: owner
         }
         console.log('data2', data2);
         let existingData = {};
-
-        const filePath = path.join(__dirname, 'files', 'users.json');
+        const filePath = path.join(__dirname, 'files/users', `${user.id}.json`);
         if(fs.existsSync(filePath)){
             const f = fs.readFileSync(filePath, 'utf-8');
             existingData = JSON.parse(f);
         }
-        existingData[uuid] = data;
+        existingData = data;
 
         fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
         

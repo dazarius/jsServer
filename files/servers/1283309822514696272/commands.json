@@ -1,0 +1,12 @@
+{
+  "slashcommand": {
+    "commandId": {
+      "access": "user/role id"
+    },
+    "prefixCommand": {
+      "commandId": {
+        "access": "user/role id"
+      }
+    }
+  }
+}

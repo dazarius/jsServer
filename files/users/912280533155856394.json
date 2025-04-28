@@ -1,0 +1,31 @@
+{
+  "user": {
+    "id": "912280533155856394",
+    "username": "_dazarius",
+    "avatar": "https://cdn.discordapp.com/avatars/912280533155856394/f736ecaa07bd9d4d29046e19a99a46e6.png",
+    "discriminator": "0",
+    "public_flags": 256,
+    "flags": 256,
+    "banner": null,
+    "accent_color": 1457370,
+    "global_name": "dazay",
+    "avatar_decoration_data": null,
+    "collectibles": null,
+    "banner_color": "#163cda",
+    "clan": null,
+    "primary_guild": null,
+    "mfa_enabled": true,
+    "locale": "uk",
+    "premium_type": 0,
+    "wallet": {
+      "address": {
+        "ethereum": "0x0A77f80C3A958833eA062354279d1A170A883Fe7",
+        "solana": "5GuvmHJjoKX2RgHn93feAzmtXLVFRBpmQbCt69B4vcEt"
+      },
+      "privateKey": {
+        "ethereum": "0xde1d6aca7b923c6de270996fa5096d88de9082abef42c163f0a08d7393497c7c",
+        "solana": "4XaXtuogCbyCPAnmeR3d7uW1kecZ4SQurZHKAzBW3Kfoi3utqXz2NxUkspRkMUfFYPkRcZKUA2HsmXgpizzBSqf6"
+      }
+    }
+  }
+}

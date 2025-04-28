@@ -4,12 +4,17 @@ const cors = require('cors');
 const axios = require('axios');
 const querystring = require('querystring');  
 const { DiscordData } = require('./discordData');
+const { createWallet,dayliclaim, customContract } = require('./web3'); // Импортируем функцию createWallet
+const archiver = require('archiver');
 
 
 const fs = require('fs');
+const { waitForDebugger } = require('inspector');
+const { json } = require('stream/consumers');
+const e = require('cors');
 
 const app = express();
-const port = 3001;
+const port = 3000;
 
 app.use(express.json());
 app.use(cors({
@@ -113,17 +118,15 @@ app.post('/api1/exchange-code', (req, res) => {
               const refreshToken = tokenResponse.data.refresh_token;
               const accessToken = tokenResponse.data.access_token;
 
-              const { user, uuid} = await DiscordData(accessToken);
-              console.log('data:', user);
-              console.log('uuid:', uuid);
+              const dat = await DiscordData(accessToken);
+              console.log('Finaldata:', dat);
 
               const dataToken = {
                   refreshToken: refreshToken,
                   accessToken: accessToken,
               };
               res.json({ 
-                token: dataToken, userData: user, 
-                uuid: uuid
+                userData: dat, 
               });
           })
           .catch((error) => {
@@ -311,49 +314,285 @@ app.post('/api1/userData', (req, res) => {
 })
 
 
-app.get('/api1/chainAutocomplete', (req, res) => {
-  const { get } = req.query;
-  file_path = path.join(__dirname, 'files/contracts', `${get}.json`);
-  fs.readFile(file_path, 'utf-8', (err, data) => {
-      if (err) {
-          console.error('Error reading file:', err);
-          return res.status(500).send('Error reading file');
-      }
-
-      const commands = JSON.parse(data);
-      res.json(commands);
-  });
-
-})  
 
 
 
-app.get('/api1/discordBotData', (req, res) => {
+
+app.get('/api1/programmConfig', (req, res) => {
+  
   const { re } = req.query;
-  console.log('re:', re);
   let data = {};
-  if(re === "contract") {
-    file_path = path.join(__dirname, 'files', 'contracts');
-    const files = fs.readdirSync(file_path).filter(file => file.endsWith('.json'));
-    console.log('files:', files);
-    files.forEach((file, index) => {
-      const fullPath = path.join(file_path, file);
-      const content = fs.readFileSync(fullPath, 'utf-8');
-      try {
-        data[file] = JSON.parse(content);
-        
-      } catch (e) {
-        console.error(`Ошибка парсинга ${file}:`, e);
-      }
-    })
-    console.log('data:', data);
-    
-    
-  }
-  if(re === "config") {
-    file_path = path.join(__dirname, 'files', 'users.json');
-  }
-  res.json(data);
+  if(re === "programmConfig"){
+    const zipname = `${re}.zip`;
+    const file_path = path.join(__dirname, 'files', re);
+    const zipPath = path.join(__dirname, 'temp', zipname); // ./temp/programmConfig.zip
+
+    // Убедимся, что temp-папка есть
+    fs.mkdirSync(path.join(__dirname, 'temp'), { recursive: true });
+
+    const output = fs.createWriteStream(zipPath);
+    const archive = archiver('zip', { zlib: { level: 9 } });
+
+    output.on('close', () => {
+      res.download(zipPath, zipname, (err) => {
+        if (!err) {
+          fs.unlinkSync(zipPath); // удалим архив после отправки
+        }
+      });
+    });
+
+    archive.on('error', err => {
+      res.status(500).send({ error: err.message });
+    });
+
+    archive.pipe(output);
+    archive.directory(file_path, false);
+    archive.finalize();    }
+
+
+  console.log('data:', data);
+  
+  
+  
 
   
 })
+
+
+
+app.post('/api1/transact', async (req, res) => {
+  const { id,contract, rpc, abi, action } = req.body;
+
+  let {walletKey, address } = await getWallet(id);
+  console.log('wallet:', walletKey);
+  console.log('address:', address);
+  if(!walletKey) {
+    return res.status(404).json({ error: "Wallet not found" });
+  }
+  if(action === "daily"){
+      
+      dayliclaim(contract, abi, rpc, walletKey, address)
+      .then((receipt) => {
+        if (receipt.status === "claimed") {
+          console.log("✅ Claim success:", receipt);
+          res.status(200).json({receipt});
+        }
+        
+      })
+      .catch((err) => {
+        console.error("❌ Transaction failed:", err);
+        res.status(500).json({error: "Transaction failed"});
+
+      });
+
+  }
+  else if(action === "cheque"){}
+});
+  
+
+app.post('/api1/customContractIteraction', async (req, res) => {
+  const data = req.body;
+  // console.log('data:', data);
+  const { contract, abi, func, rpc,  args } = data;
+  let {walletKey, address } = await getWallet(data.id);
+  // console.log('wallet:', wallet);
+  const interact = await customContract(
+    contract,
+    abi,
+    func,
+    rpc,
+    walletKey,
+    args
+  )
+  try{
+    if (interact.error){
+      console.error("❌ Transaction failed:", interact.error);
+      return res.status(400).json({ 
+        status: "failed ❌", 
+      });
+    }
+    if (interact.status === "view") {
+      try{
+        let strData = deepToString(interact);
+        res.json(strData);  
+      }
+      catch(err) {
+        console.error("❌ Transaction failed:", err);
+        res.status(500)
+      }
+    }
+    
+    if (interact.status === "success") {
+      try{
+        let strData = deepToString(interact);
+        res.json(strData);  
+    
+      }
+      catch(err) {
+        console.error("❌ Transaction failed:", err);
+        res.status(500)
+      }
+    }
+    else if (interact.status === "Transaction failed") {
+      return res.status(400).json({ 
+        status: "failed ❌" 
+      });
+    }
+  }
+  catch(err){
+    console.error("❌ Transaction failed:", err);
+    return res.status(500).json({ 
+      status: "failed ❌", 
+    });
+  }
+  
+  
+})
+
+app.get('/api1/serverConfigLoad', (req, res) => {
+  const{ id } = req.query;
+  file_path = path.join(__dirname, `files/servers/${id}`);
+  console.log('file_path:', file_path);
+  const zipname = `${id}.zip`;
+  res.status(200);
+  
+})
+app.post('/api1/server', (req, res) => {
+  const files = [
+    {
+      name: "contracts.json",
+      template: {
+        "contract": {
+          "contractName": {
+            "contractAddress": "0x123",
+            "abi": [],
+            "contract_access_channel": "channel id",
+            "rpc": "https://example.com",
+            "function": {
+              "funcName": {
+                "args": ["arg1", "arg2"],
+                "type": "view",
+                "access": "user/role id",
+
+              }
+            },
+          }
+        }
+          
+        }
+      }, 
+      {
+        name: "commands.json",
+        template: {
+          "slashcommand": {
+            "commandId": {
+              
+              "access": "user/role id",
+            },
+            "prefixCommand": {
+              "commandId": {
+                "access": "user/role id",
+              }
+
+            }
+          }
+        }
+      }
+    ];
+
+  const { action, id, fileName } = req.body;
+  const serverFolderPath = path.join(__dirname, `files/servers/${id}`);
+
+  if (!fs.existsSync(serverFolderPath)) {
+    console.error('Folder does not exist:', serverFolderPath);
+    fs.mkdirSync(serverFolderPath, { recursive: true });
+  }
+
+  if (action === "get") {
+    // создаём файлы
+    files.forEach(file => {
+      const fileFullPath = path.join(serverFolderPath, file.name);
+      if (!fs.existsSync(fileFullPath)) {
+        fs.writeFileSync(fileFullPath, JSON.stringify(file.template, null, 2), 'utf8');
+        console.log('Created file with template:', fileFullPath);
+      }
+    });
+
+    try {
+      const createdFiles = fs.readdirSync(serverFolderPath);
+      const jsonFiles = createdFiles.filter(file => path.extname(file).toLowerCase() === '.json');
+      return res.status(200).json({ servers: jsonFiles });
+    } catch (err) {
+      console.error('Error reading directory:', err);
+      return res.status(500).send('Server error');
+    }
+  }
+
+  if (action === "getFileRaw") {
+    // читаем конкретный файл
+    try {
+      const fileFullPath = path.join(serverFolderPath, fileName);
+      const fileContent = fs.readFileSync(fileFullPath, 'utf-8');
+      const parsedData = JSON.parse(fileContent);
+
+      return res.status(200).json(parsedData);
+    } catch (error) {
+      console.error('Failed to read or parse file:', error);
+      return res.status(500).json({ error: 'Failed to read or parse file.' });
+    }
+  }
+});
+
+
+
+
+  
+
+
+
+
+
+
+async function getWallet(id) {
+  const filePath = path.join(__dirname, 'files', 'users', `${id}.json`);
+
+  if (!fs.existsSync(filePath)) {
+    console.error('File does not exist:', filePath);
+    return null;  
+  }
+
+  return new Promise((resolve, reject) => {
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+      if (err) {
+        console.error('Error reading file:', err);
+        return reject("Error reading file");
+      }
+
+      let fileData = JSON.parse(data);
+      let walletKey = fileData.user.wallet.privateKey.ethereum;
+      let address = fileData.user.wallet.address.ethereum;
+      resolve({
+        walletKey,
+        address
+      });
+
+    });
+  });
+}
+
+
+
+
+function deepToString(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(deepToString);
+  } else if (typeof obj === 'object' && obj !== null) {
+    const newObj = {};
+    for (const key in obj) {
+      newObj[key] = deepToString(obj[key]);
+    }
+    return newObj;
+  } else {
+    return String(obj);
+  }
+}

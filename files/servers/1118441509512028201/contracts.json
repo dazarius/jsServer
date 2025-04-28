@@ -1,0 +1,31 @@
+{
+  "contract": {
+    "cheque": {
+          "contract": "contractAddress",
+          "abi":[],
+          "rpc": "https://exampel.com",
+          "contract_access_channel": "channel id",
+          "function": {
+              "funcName": {
+                "type": "funcType",
+                "access": "user/role id"
+              }
+                  
+              
+            } 
+      },
+    "fdsvae": {
+      "contractAddress": "0x123",
+      "abi": [],
+      "contract_access_channel": "channel id",
+      "rpc": "https://example.com",
+      "function": {
+        "funcName": {
+          
+          "type": "view",
+          "access": "user/role id"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "contracts": {
+      "cheque": {
+          "contract": "0x3a8aDc6F07366F4e012549e93bBfCE1051B351c5",
+          "abi": {},
+          "rpc": "https://testnet-rpc.monad.xyz",
+          "contract_access_channel": 1361785389999849717,
+          "function": {
+              "cashOut_v1": {
+                  "type": "view"
+              }
+          }
+      },
+      "daily": {
+          "contract": "0x02b4875591044363dd2cE15f7DDE63855981194F",
+          "contract_access_channel": 1283309822514696275,
+          "abi": [
+              {
+                  "inputs": [],
+                  "stateMutability": "nonpayable",
+                  "type": "constructor"
+              },
+              {
+                  "anonymous": false,
+                  "inputs": [
+                      {
+                          "indexed": true,
+                          "internalType": "address",
+                          "name": "user",
+                          "type": "address"
+                      },
+                      {
+                          "indexed": false,
+                          "internalType": "uint256",
+                          "name": "amountPaid",
+                          "type": "uint256"
+                      },
+                      {
+                          "indexed": false,
+                          "internalType": "uint256",
+                          "name": "timestamp",
+                          "type": "uint256"
+                      }
+                  ],
+                  "name": "Claimed",
+                  "type": "event"
+              },
+              {
+                  "inputs": [],
+                  "name": "dailyClaim",
+                  "outputs": [],
+                  "stateMutability": "payable",
+                  "type": "function"
+              },
+              {
+                  "inputs": [
+                      {
+                          "internalType": "uint256",
+                          "name": "newPrice",
+                          "type": "uint256"
+                      }
+                  ],
+                  "name": "setClaimPrice",
+                  "outputs": [],
+                  "stateMutability": "nonpayable",
+                  "type": "function"
+              },
+              {
+                  "inputs": [],
+                  "name": "withdraw",
+                  "outputs": [],
+                  "stateMutability": "nonpayable",
+                  "type": "function"
+              },
+              {
+                  "inputs": [
+                      {
+                          "internalType": "address",
+                          "name": "",
+                          "type": "address"
+                      }
+                  ],
+                  "name": "claims",
+                  "outputs": [
+                      {
+                          "internalType": "uint256",
+                          "name": "lastClaimTimestamp",
+                          "type": "uint256"
+                      },
+                      {
+                          "internalType": "uint256",
+                          "name": "totalPaid",
+                          "type": "uint256"
+                      },
+                      {
+                          "internalType": "uint256",
+                          "name": "numberOfClaims",
+                          "type": "uint256"
+                      }
+                  ],
+                  "stateMutability": "view",
+                  "type": "function"
+              },
+              {
+                  "inputs": [],
+                  "name": "Price",
+                  "outputs": [
+                      {
+                          "internalType": "uint256",
+                          "name": "",
+                          "type": "uint256"
+                      }
+                  ],
+                  "stateMutability": "view",
+                  "type": "function"
+              },
+              {
+                  "inputs": [],
+                  "name": "getBalance",
+                  "outputs": [
+                      {
+                          "internalType": "uint256",
+                          "name": "",
+                          "type": "uint256"
+                      }
+                  ],
+                  "stateMutability": "view",
+                  "type": "function"
+              },
+              {
+                  "inputs": [
+                      {
+                          "internalType": "address",
+                          "name": "user",
+                          "type": "address"
+                      }
+                  ],
+                  "name": "getClaimInfo",
+                  "outputs": [
+                      {
+                          "internalType": "uint256",
+                          "name": "count",
+                          "type": "uint256"
+                      }
+                  ],
+                  "stateMutability": "view",
+                  "type": "function"
+              },
+              {
+                  "inputs": [],
+                  "name": "owner",
+                  "outputs": [
+                      {
+                          "internalType": "address",
+                          "name": "",
+                          "type": "address"
+                      }
+                  ],
+                  "stateMutability": "view",
+                  "type": "function"
+              }
+          ],
+          "rpc": "https://testnet-rpc.monad.xyz",
+          "function": {
+              "getBalance": {
+                  "type": "view",
+                  "access": []
+              },
+              "withdraw": {
+                  "type": "nonpayable",
+                  "access": [
+                      912280533155856394
+                  ]
+
+              },
+              "dailyClaim": {
+                  "type": "payable",
+                  "access": [
+                      1283309822514696275
+                  ],
+                  "value": "0.015"
+              }
+
+          }
+      }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "user": {
+    "id": "1010192317019344996",
+    "username": "jon_daw",
+    "avatar": "https://cdn.discordapp.com/avatars/1010192317019344996/null.png",
+    "discriminator": "0",
+    "public_flags": 0,
+    "flags": 0,
+    "banner": null,
+    "accent_color": null,
+    "global_name": "joseph",
+    "avatar_decoration_data": null,
+    "collectibles": null,
+    "banner_color": null,
+    "clan": null,
+    "primary_guild": null,
+    "mfa_enabled": false,
+    "locale": "ru",
+    "premium_type": 0,
+    "wallet": {
+      "address": {
+        "ethereum": "0x45BDc23BCAa59F3df63974d55D64aC3081b1D06c",
+        "solana": "D3h2LkAXAGJccNV5Yn1oqZDFAkyeqBr1Drj7B8Fjpckj"
+      },
+      "privateKey": {
+        "ethereum": "0xc211cbdd745e00ed7c3dfa679ba220c68775c7f3b3551da586dc133e72fea825",
+        "solana": "4QFessfHYNSfJRfrzs3XZ8ggYRW4oXtdLA54cAwn19Tbc8j6sYQ8Ke4WKvJYRKYeJPSDfxV3swsBi7Kx6xAa8Y9R"
+      }
+    }
+  }
+}
