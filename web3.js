@@ -14,51 +14,56 @@ async function dayliclaim(
   address
 
 ) {
+  try {
+    const provider = new ethers.JsonRpcProvider(rpc);
+    const wallet = new ethers.Wallet(privateKey, provider);
+    const contract = new ethers.Contract(contractAddress, contractABI, wallet);
+    const price = await contract.price();
 
-  const provider = new ethers.JsonRpcProvider(rpc);
-  const wallet = new ethers.Wallet(privateKey, provider);
-  const contract = new ethers.Contract(contractAddress, contractABI, wallet);
-  const price = await contract.Price();
+    console.log("original price", price);
+    console.log("daily claim price", ethers.formatEther(price));
+    const tx = await contract.dailyClaim({ value: price });
+    const receipt = await tx.wait();
 
-  console.log("original price", price);
-  console.log("daily claim price", ethers.formatEther(price));
-  const tx = await contract.dailyClaim({ value: price });
-  const receipt = await tx.wait();
+    if (receipt.status === 1) {
+      const totalCost = price + receipt.gasUsed;
+      console.log("total cost", totalCost);
 
-  if (receipt.status === 1) {
-    const totalCost = price + receipt.gasUsed;
-    console.log("total cost", totalCost);
-
-    let count = await contract.getClaimInfo(address);
-    
-    // const event = receipt.logs.find(
-    //   (log) => log.address.toLowerCase() === contract.target.toLowerCase()
-    // );
-    // let c = event.args[1].toString();
-    // console.log("event", event);
-    // console.log("total claim", c);
-    
-
-
-    // );
-    return {
-      status: "claimed",
-      tx: receipt.hash,
-      gasUsed:  ethers.formatEther(totalCost).toString(),
-      totalClaimed: count.toString(),  
-      channelID: "1361785389999849717", 
-      channelName: "daily-claim",
+      let count = await contract.getClaimInfo(address);
+      
+      // const event = receipt.logs.find(
+      //   (log) => log.address.toLowerCase() === contract.target.toLowerCase()
+      // );
+      // let c = event.args[1].toString();
+      // console.log("event", event);
+      // console.log("total claim", c);
+      
 
 
-    }
-  }
-  else{
-    console.log(await contract.getClaimInfo(address));
+      // );
       return {
-        status: "Transaction failed",
-      }
+        status: "claimed",
+        tx: receipt.hash,
+        gasUsed:  ethers.formatEther(totalCost).toString(),
+        totalClaimed: count.toString(),  
+        channelID: "1361785389999849717", 
+        channelName: "daily-claim",
 
+
+      }
+    }
+    else{
+        return {
+          status: "Transaction failed",
+        }
+
+  }  
+}
+  catch (error) {
+    console.log("error daily claim", error);
+    
   }
+  
  
 
 }
@@ -164,19 +169,28 @@ function decodePrivateKey(base58Str) {
 
 
 // generare EVM/SOL wallet
-const createWallet = () => {
+const createWallet = ({
+  main,
+  
+}) => {
   const wallet = Wallet.createRandom();
   const solanaWallet = Keypair.generate();
+  const date = new Date();
+  const timestamp = date.getTime();
 
   return {
-    address: {
-      ethereum: wallet.address,
-      solana: solanaWallet.publicKey.toString(),
-    },
-    privateKey: {
-      ethereum: wallet.privateKey,
-      solana: encodePrivateKey(solanaWallet.secretKey),
-    },
+    [timestamp]:{
+        address: {
+        ethereum: wallet.address,
+        solana: solanaWallet.publicKey.toString(),
+      },
+      privateKey: {
+        ethereum: wallet.privateKey,
+        solana: encodePrivateKey(solanaWallet.secretKey),
+      },
+      main:main,
+    }
+    
   };
 };
 

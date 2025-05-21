@@ -1,0 +1,8 @@
+{
+  "prefix": "!",
+  "max_user_wallet": 5,
+  "max_user_giuld_contract_functions": 5,
+  "max_user_guilds_contract": 2,
+  "role": [],
+  "TextChannel": []
+}

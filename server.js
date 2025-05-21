@@ -370,8 +370,8 @@ app.post('/api1/transact', async (req, res) => {
     return res.status(404).json({ error: "Wallet not found" });
   }
   if(action === "daily"){
-      
-      dayliclaim(contract, abi, rpc, walletKey, address)
+      try{
+        dayliclaim(contract, abi, rpc, walletKey, address)
       .then((receipt) => {
         if (receipt.status === "claimed") {
           console.log("✅ Claim success:", receipt);
@@ -384,6 +384,12 @@ app.post('/api1/transact', async (req, res) => {
         res.status(500).json({error: "Transaction failed"});
 
       });
+      }
+      catch(err) {
+        console.error("❌ something went wrong:", err);
+        res.status(500).json({error: "something went wrong"});
+      }
+      
 
   }
   else if(action === "cheque"){}
@@ -441,38 +447,104 @@ app.post('/api1/customContractIteraction', async (req, res) => {
   }
   catch(err){
     console.error("❌ Transaction failed:", err);
-    return res.status(500).json({ 
-      status: "failed ❌", 
-    });
+    res.destroy(err); 
+
   }
   
   
 })
 
-app.get('/api1/serverConfigLoad', (req, res) => {
-  const{ id } = req.query;
-  file_path = path.join(__dirname, `files/servers/${id}`);
-  console.log('file_path:', file_path);
-  const zipname = `${id}.zip`;
-  res.status(200);
-  
-})
-app.post('/api1/server', (req, res) => {
+
+
+app.post("/api1/serverFolderLoad", (req, res) => {
+  console.log("📥 serverFolderLoad");
+  const { id, roles, channels } = req.body;
+
+  const folderPath = path.join(__dirname, "files", "servers", id);
+  const configPath = path.join(folderPath, "config.json");
+
+  if (!fs.existsSync(folderPath)) {
+    return res.status(404).json({ error: "Folder not found" });
+  }
+
+  // Обновление config.json
+  let config = {};
+  if (fs.existsSync(configPath)) {
+    try {
+      config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+    } catch (err) {
+      console.error("❌ Ошибка чтения config.json:", err);
+    }
+  }
+  config.roles = roles;
+  config.channels = channels;
+  fs.writeFileSync(configPath, JSON.stringify(config, null, 2), "utf-8");
+  console.log("✅ config update");
+
+  // === Архивация и отправка напрямую в res ===
+  const archive = archiver("zip", { zlib: { level: 9 } });
+
+  res.setHeader("Content-Type", "application/zip");
+  res.setHeader("Content-Disposition", `attachment; filename="${id}.zip"`);
+
+  archive.on("error", (err) => {
+    console.error("❌ Ошибка архивации:", err);
+    res.status(500).end();
+  });
+
+  archive.on("end", () => {
+    console.log("✅ Архив отправлен клиенту");
+  });
+
+  archive.pipe(res);
+  archive.directory(folderPath, false);
+  archive.finalize();
+});
+
+app.post('/api1/updateApiKey', (req, res) => {
+  const { user, key } = req.body;
+  const filePath = path.join(__dirname, 'files', `users/${user}.json`);
+  if (!fs.existsSync(filePath)) {
+    console.error('File does not exist in updateApiKey:', filePath, "api key:", key, "user:", user);
+    return res.status(404).json({ error: "File not found" });
+  }
+  fs.readFile(filePath, 'utf-8', (err, data) => {
+    if (err) {
+      console.error('Error reading file:', err);
+      return res.status(500).send('Error reading file');
+    }
+
+    let fileData = JSON.parse(data);
+    fileData.user.token = key;
+
+    fs.writeFile(filePath, JSON.stringify(fileData, null, 2), (err) => {
+      if (err) {
+        console.error('Error writing file:', err);
+        return res.status(500).send('Error writing file');
+      } else {
+        console.log('API key updated');
+        res.status(200).send('API key updated');
+      }
+    });
+  });
+
+});
+
+app.post('/api1/server', async(req, res) => {
   const files = [
     {
       name: "contracts.json",
       template: {
         "contract": {
           "contractName": {
-            "contractAddress": "0x123",
+            "address": "0x123",
             "abi": [],
             "contract_access_channel": "channel id",
             "rpc": "https://example.com",
             "function": {
               "funcName": {
-                "args": ["arg1", "arg2"],
-                "type": "view",
-                "access": "user/role id",
+            
+                "access": [1,2,4,5],
 
               }
             },
@@ -497,26 +569,54 @@ app.post('/api1/server', (req, res) => {
             }
           }
         }
+      },
+      {
+        name:"config.json",
+        template: {
+          "prefix": "!",
+          "max_user_wallet": 5,
+          "max_user_giuld_contract_functions":5,
+          "max_user_guilds_contract": 2,
+          "role":[],
+          "TextChannel":[]
+        }
       }
     ];
 
-  const { action, id, fileName } = req.body;
-  const serverFolderPath = path.join(__dirname, `files/servers/${id}`);
+  const { action, d, serverId, fileName,userId } = req.body;
+  const userDat = await getUserData({
+    userId: userId,
+    token: req.headers['authorization'],
 
-  if (!fs.existsSync(serverFolderPath)) {
-    console.error('Folder does not exist:', serverFolderPath);
-    fs.mkdirSync(serverFolderPath, { recursive: true });
+  });
+  if (!userDat) {
+    return res.status(404).json({ error: "User data not found" });
   }
+  console.log('userDat:', userDat.guilds);
+  const token = req.headers['authorization'];
+  console.log('token:', token);
+
+
+  const serverFolderPath = path.join(__dirname, `files/servers/${serverId}`);
 
   if (action === "get") {
-    // создаём файлы
+    if (!fs.existsSync(serverFolderPath)) {
+      console.error('Folder does not exist:', serverFolderPath);
+      fs.mkdirSync(serverFolderPath, { recursive: true });
+
+    }
+  
     files.forEach(file => {
       const fileFullPath = path.join(serverFolderPath, file.name);
       if (!fs.existsSync(fileFullPath)) {
         fs.writeFileSync(fileFullPath, JSON.stringify(file.template, null, 2), 'utf8');
-        console.log('Created file with template:', fileFullPath);
       }
+
+      
+
+
     });
+
 
     try {
       const createdFiles = fs.readdirSync(serverFolderPath);
@@ -529,26 +629,322 @@ app.post('/api1/server', (req, res) => {
   }
 
   if (action === "getFileRaw") {
-    // читаем конкретный файл
+    const serverFolderPath = path.join(__dirname, `files/servers/${serverId}`);
+    console.log('serverFolderPath:', fileName);
+
     try {
       const fileFullPath = path.join(serverFolderPath, fileName);
       const fileContent = fs.readFileSync(fileFullPath, 'utf-8');
       const parsedData = JSON.parse(fileContent);
 
-      return res.status(200).json(parsedData);
+      return res.status(200).json({
+        content: parsedData,
+        serverId: serverId,
+      });
     } catch (error) {
       console.error('Failed to read or parse file:', error);
       return res.status(500).json({ error: 'Failed to read or parse file.' });
     }
   }
+  if (action === "addContracts") {
+    const contractData = d;
+    
+    // console.log('contractData:', JSON.stringify(contractData));
+
+    Object.keys(contractData).forEach((key) => {
+      const id = key.split('-')[1]
+      const contracts = contractData[key].contract;
+
+      // console.log('key:', key);
+      // console.dir(contractData[key], { depth: null });
+      for (const contractId in contracts) {
+        const contractEntry = contracts[contractId];
+        if (typeof contractEntry.abi === 'string') {
+          try {
+            contractEntry.abi = JSON.parse(contractEntry.abi);
+          } catch (e) {
+            console.warn(`⚠️ Failed to parse ABI for contract ${contractId} (server ${id})`);
+          }
+        }
+        if (contractEntry.contract_access_channel === "*"){
+          contractEntry.contract_access_channel = "*";
+        }
+        else{
+          try{
+          
+            contractEntry.contract_access_channel = extractFirstNumberFromString(contractEntry.contract_access_channel);
+            
+          }
+          catch(e) {
+            console.warn(`⚠️ Failed to parse contract_access_channel for contract ${contractId} (server ${id})`);
+            contractEntry.contract_access_channel = 0;
+          }
+        }
+        
+        for(const funcName in contractEntry.function) {
+          const funcEntry = contractEntry.function[funcName];
+          if (typeof funcEntry.value === 'string') {
+            try {
+              funcEntry.value = extractFirstNumberFromString(funcEntry.value, "float");
+            } catch (e) {
+              console.warn(`⚠️ Failed to parse access for function ${funcName} in contract ${contractId} (server ${id})`);
+            }
+          }
+          if (typeof funcEntry.access === 'string') {
+            try {
+              funcEntry.access = funcEntry.access
+                .split(',')
+                .map(s => s.trim())
+                .map(s => isNaN(s) ? s : Number(s));
+            } catch (e) {
+              console.warn(`⚠️ Failed to parse access for function ${funcName} in contract ${contractId} (server ${id})`);
+              funcEntry.access = [];
+            }
+          } else if (Array.isArray(funcEntry.access)) {
+            funcEntry.access = funcEntry.access.map(s => {
+              if (typeof s === 'string') s = s.trim();
+              return isNaN(s) ? s : Number(s);
+            });
+          }
+          
+        }
+      }
+
+      console.log('======================================');
+
+      const filePath = path.join(__dirname, `files/servers/${id}` , 'contracts.json');
+      fs.writeFileSync(filePath, JSON.stringify(contractData[key], null, 2), 'utf8');
+
+
+    })
+    res.status(200).json({ message: 'Contracts added successfully' });
+    
+  }
+});
+
+app.post('/api2/server', async (req, res) => {
+  const { userId, action, d } = req.body;
+  const token = req.headers['authorization'];
+  // console.log("data in server2.0",'userId:', userId, "token:", token);
+  if (!userId || !token) {
+    return res.status(400).json({ error: 'Missing userId or authorization' });
+  }
+
+  const userDat = await getUserData({ userId, token });
+
+  if (!userDat) {
+    return res.status(404).json({ error: 'User or guilds not found' });
+  }
+  const user = userDat.user;
+  const filesTemplates = [
+    {
+      name: 'contracts.json',
+      template: {
+        contract: {
+          contractName: {
+            address: '0x123',
+            abi: [],
+            contract_access_channel: 'channel id',
+            rpc: 'https://example.com',
+            function: {
+              funcName: {
+                access: [1, 2, 4, 5],
+              },
+            },
+          },
+        },
+      },
+    },
+    {
+      name: 'commands.json',
+      template: {
+        slashcommand: {
+          commandId: {
+            access: 'user/role id',
+          },
+          prefixCommand: {
+            commandId: {
+              access: 'user/role id',
+            },
+          },
+        },
+      },
+    },
+    {
+      name: 'config.json',
+      template: {
+        prefix: '!',
+        max_user_wallet: 5,
+        max_user_giuld_contract_functions: 5,
+        max_user_guilds_contract: 2,
+        role: [],
+        TextChannel: [],
+      },
+    },
+  ];
+  let files = {}
+  const allServerFiles = {};
+  for (const guild of user.guilds) {
+    const serverId = guild.id;
+    const serverName = guild.name;
+    console.log('serverId:', serverId);
+    console.log('serverName:', serverName);
+    const serverFolderPath = path.join(__dirname, `files/servers/${serverId}`);
+
+    // Создаём папку сервера, если не существует
+    if (!fs.existsSync(serverFolderPath)) {
+      fs.mkdirSync(serverFolderPath, { recursive: true });
+    }
+
+    // Создаём недостающие файлы
+    for (const file of filesTemplates) {
+      const fileFullPath = path.join(serverFolderPath, file.name);
+      if (!fs.existsSync(fileFullPath)) {
+        fs.writeFileSync(fileFullPath, JSON.stringify(file.template, null, 2), 'utf8');
+      }
+    }
+
+    // Читаем все .json файлы сервера
+    const filesInServer = fs.readdirSync(serverFolderPath).filter(f => f.endsWith('.json'));
+
+    const contentByFile = {};
+
+    for (const filename of filesInServer) {
+
+      try {
+        const fileContent = fs.readFileSync(path.join(serverFolderPath, filename), 'utf8');
+        contentByFile[filename.replace('.json', '')] = JSON.parse(fileContent);
+      } catch (e) {
+        console.warn(`⚠️ Failed to read file: ${filename} for server ${serverId}`);
+      }
+    }
+
+    allServerFiles[serverId] = contentByFile;
+    files[serverId] = {
+      name: serverName,
+      files: filesInServer
+    }; 
+  }
+  if (action === "addContracts") {
+    const userGuild = user.guilds
+    console.log('userGuild:', userGuild);
+    for (const key in d) {
+      if (d.hasOwnProperty(key)) {
+        const serverId = key.split('-')[1]; // Из "contracts-123..." → "123..."
+        const filePath = path.join(__dirname, `files/servers/${serverId}`, 'contracts.json');
+
+        const contractsData = d[key];
+        fs.writeFile(filePath, JSON.stringify(contractsData, null, 2), 'utf8', (err) => {
+          if (err) {
+            console.error('Error writing file:', err);
+            return res.status(500).send('Error writing file');
+          }
+          console.log('Contracts data saved to file:', filePath);
+
+        })
+    // console.log("🔧 serverId:", serverId);
+    // console.log("📄 contracts:", contractsData);
+    
+    // дальше можешь сохранять, обрабатывать и т.п.
+  }
+}
+  }
+
+  res.status(200).json({ servers: allServerFiles, file: files });
 });
 
 
-
+app.get('/api2/loadConfig', async (req, res) => {
+  const token = req.headers.authorization;
+  const userId = req.query.userId || req.query.id;
+  if(!getUserData({userId, token})){
+    
+    res.status(404).json({ error: "authorization failed" });
+  }
+  const filePath = path.join(__dirname, 'files', 'users', `${userId}.json`);
+    if (!fs.existsSync(filePath)) {
+      console.error('File does not exist:', filePath);
+      return res.status(404).json({ error: "File not found" });
+    }
+    fs.readFile(filePath, 'utf-8', (err, data) => {
+      if (err) {
+        console.error('Error reading file:', err);
+        return res.status(500).send('Error reading file');
+      }
+      const config = JSON.parse(data).user.config;
+      res.json(config);
+    });
+  
+})
+app.post('/api2/updateUserData', async (req, res) => {
+  const {userId, target, userData} = req.body;
+  const token = req.headers['authorization'];
+  const userExist = await getUserData({
+    userId: userId,
+    token: token,
+  });
+  if (!userExist) {
+    return res.status(404).json({ error: "authorization failed" });
+  }
+  const filePath = path.join(__dirname, 'files', 'users', `${userId}.json`);
+  let existFile = {};
+  fs.readFile(filePath, 'utf-8', (err, data) => {
+    if (err) {
+      console.error('Error reading file:', err);
+      return res.status(500).send('Error reading file');
+    }
+    existFile = JSON.parse(data);
+    
+    if (target === "wallet") {
+      console.log("data from req:", userData);
+      console.log("data from file:", existFile.user.wallet);
+      existFile.user.wallet = userData;
+      console.log("data from file after added data from req:", existFile.user.wallet);
+      fs.writeFile(filePath, JSON.stringify(existFile, null, 2), (err) => {
+        if (err) {
+          console.error('Error writing file:', err);
+          return res.status(500).send('Error writing file');
+        } else {
+          console.log('User data saved');
+          res.status(200).send('User data saved');
+        }
+      })
+      
+    }
+    // fs.writeFile(filePath, JSON.stringify(existFile, null, 2), (err) => {
+    //   if (err) {
+    //     console.error('Error writing file:', err);
+    //     return res.status(500).send('Error writing file');
+    //   } else {
+    //     console.log('User data saved');
+    //     res.status(200).send('User data saved');
+    //   }
+    // });
+  })
+})
 
   
 
-
+app.post('/api2/updateUserData', async (req, res) => {
+  const {userId, type,wallet  } = req.body;
+  const token = req.headers['authorization'];
+  const userExist = await getUserData({
+    userId: userId,
+    token: token,
+  });
+  if (!userExist) {
+    return res.status(404).json({ error: "authorization failed" });
+  }
+  if (type === "wallet") {
+    console.log("updateUserData:", wallet);
+    const filePath = path.join(__dirname, 'files', 'users', `${userId}.json`);
+    let fileData = {};
+    if (fs.existsSync(filePath)) {
+      const data = fs.readFileSync(filePath, 'utf-8');
+      fileData = JSON.parse(data);
+    }
+  }
+})
 
 
 
@@ -569,8 +965,10 @@ async function getWallet(id) {
       }
 
       let fileData = JSON.parse(data);
-      let walletKey = fileData.user.wallet.privateKey.ethereum;
-      let address = fileData.user.wallet.address.ethereum;
+      const firstKey = Object.keys(fileData.user.wallet)[0];
+      const wallet = fileData.user.wallet[firstKey];
+      let walletKey = wallet.privateKey.ethereum;
+      let address = wallet.address.ethereum;
       resolve({
         walletKey,
         address
@@ -580,7 +978,34 @@ async function getWallet(id) {
   });
 }
 
+async function getUserData({ userId, token }) {
+  const filePath = path.join(__dirname, "files", "users", `${userId}.json`);
 
+  if (!fs.existsSync(filePath)) {
+    console.error("❌ File does not exist in getUserDat:", filePath, "userId:", userId);
+    return null;
+  }
+
+  try {
+    const data = await fs.promises.readFile(filePath, "utf-8");
+    const fileData = JSON.parse(data);
+    const userToken = fileData.token;
+    // console.log("🔐 user token (from request):", token);
+    // console.log("📁 token (from file):", userToken);
+
+    if (userToken !== token) {
+      console.error("❌ Token mismatch");
+      return null;
+    }
+
+    // console.log("✅ Token match!");
+    return fileData;
+
+  } catch (err) {
+    console.error("❌ Error reading/parsing file:", err);
+    return null;
+  }
+}
 
 
 function deepToString(obj) {
@@ -596,3 +1021,30 @@ function deepToString(obj) {
     return String(obj);
   }
 }
+
+
+function extractFirstNumberFromString(input, math) {
+  if (typeof input !== 'string') return 0;
+  const r = math;
+  const parts = input.split(',');
+
+  for (const part of parts) {
+    if(math === "int"){
+      const num = parseInt(part.trim(), 10);
+      if (!isNaN(num)) {
+        return num;
+      }
+    }
+    else if(math === "float"){
+      const num = parseFloat(part.trim());
+      if (!isNaN(num)) {
+        return num;
+      }
+    }
+    
+  }
+
+  return 0; // если ничего не найдено
+}
+
+

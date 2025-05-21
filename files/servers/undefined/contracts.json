@@ -1,0 +1,20 @@
+{
+  "contract": {
+    "contractName": {
+      "address": "0x123",
+      "abi": [],
+      "contract_access_channel": "channel id",
+      "rpc": "https://example.com",
+      "function": {
+        "funcName": {
+          "access": [
+            1,
+            2,
+            4,
+            5
+          ]
+        }
+      }
+    }
+  }
+}

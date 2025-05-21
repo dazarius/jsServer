@@ -1,0 +1,7 @@
+{
+  "prefix": "!",
+  "maxContract": 1,
+  "maxFunction": 5,
+  "role": [],
+  "TextChannel": []
+}

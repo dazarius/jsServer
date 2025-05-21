@@ -17,15 +17,53 @@
     "mfa_enabled": true,
     "locale": "uk",
     "premium_type": 0,
-    "wallet": {
-      "address": {
-        "ethereum": "0x0A77f80C3A958833eA062354279d1A170A883Fe7",
-        "solana": "5GuvmHJjoKX2RgHn93feAzmtXLVFRBpmQbCt69B4vcEt"
+    "guilds": [
+      {
+        "id": "1020752463424401508",
+        "name": "Сервер sanchouz",
+        "icon": null,
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
       },
-      "privateKey": {
-        "ethereum": "0xde1d6aca7b923c6de270996fa5096d88de9082abef42c163f0a08d7393497c7c",
-        "solana": "4XaXtuogCbyCPAnmeR3d7uW1kecZ4SQurZHKAzBW3Kfoi3utqXz2NxUkspRkMUfFYPkRcZKUA2HsmXgpizzBSqf6"
+      {
+        "id": "1118441509512028201",
+        "name": "Camelot",
+        "icon": "b829f55c1daffb14eae134b08877577f",
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
+      },
+      {
+        "id": "1283309822514696272",
+        "name": "eskalibur 2.0",
+        "icon": "8ad532a92b16a1edcf2b2e3300834a63",
+        "banner": null,
+        "owner": true,
+        "permissions": "2251799813685247",
+        "features": []
       }
+    ],
+    "wallet": {
+      "1747729374223": {
+        "address": {
+          "ethereum": "0x92Df0bBC7716F141CFf6F2c7BF97D81D323a4cDB",
+          "solana": "HLVptB8fySyxhvefT1neTGXUFJ3T8fKLdH35dwwYKRx4"
+        },
+        "privateKey": {
+          "ethereum": "0x4df53ae9932ba62f360ad4b32b422365990f5bf8573ebb7193e509dc74e7ef58",
+          "solana": "4Lt6KZDRDeqs4sXzhJxqB5hnQ9nBEtn4t6CFiUvSkc9d2EzaYSUSh42X2R8A9tyxt66yedkx8gfUkCR3MyBefdnQ"
+        },
+        "main": false
+      }
+    },
+    "config": {
+      "user_max_wallets": 5,
+      "user_max_guilds_contract": 2,
+      "user_max_guilds_per_contract_functions": 5
     }
-  }
+  },
+  "token": "4074f4c366a68854606370f362d3461c262d0540a563624372b544d73b54ce44"
 }

@@ -1,0 +1,21 @@
+{
+  "prefix": "!",
+  "max_user_wallet": 5,
+  "max_user_giuld_contract_functions": 5,
+  "max_user_guilds_contract": 2,
+  "roles": {
+    "@everyone": 1283309822514696200,
+    "verifedes": 1361785496467935200,
+    "Owner": 1361691031313191200,
+    "archivald": 1348222190423773200,
+    "DB Cuper": 1292414191843410000,
+    "Eskalibur": 1283309905154932700
+  },
+  "channels": {
+    "general": 1283309822514696200,
+    "discord-activity": 1348230363675099100,
+    "tx": 1361785389999849700,
+    "veryf": 1364572533227126800,
+    "daily-claim": 1366330853516378000
+  }
+}
